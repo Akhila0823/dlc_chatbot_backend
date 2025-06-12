@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>DigiBuddy Chat</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <h1>DigiBuddy Chatbot 🤖</h1>
+  <div id="chat-box"></div>
+  <input type="text" id="user-input" placeholder="Ask a question..." />
+  <button onclick="sendMessage()">Send</button>
+
+  <script>
+    async function sendMessage() {
+      const input = document.getElementById('user-input').value;
+      const response = await fetch("/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input })
+      });
+      const data = await response.json();
+      document.getElementById('chat-box').innerHTML += `<p><b>You:</b> ${input}</p>`;
+      document.getElementById('chat-box').innerHTML += `<p><b>DigiBuddy:</b> ${data.reply}</p>`;
+      document.getElementById('user-input').value = "";
+    }
+  </script>
+</body>
+</html>
+
