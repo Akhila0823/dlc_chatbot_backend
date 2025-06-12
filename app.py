@@ -12,10 +12,9 @@ def home():
 def ask():
     data = request.get_json()
     user_input = data.get("message", "")
-    bot_reply = get_bot_response(user_input)
-    return jsonify({"reply": bot_reply})
+    reply = get_bot_response(user_input)
+    return jsonify({"reply": reply})
 
 if __name__ == "__main__":
-    import os
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host='0.0.0.0', port=port)
