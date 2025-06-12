@@ -4,10 +4,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 # Load FAQ data from JSON
 with open("faq.json", "r") as file:
-    faq_data = json.load(file)
+    faq_list = json.load(file)
 
-questions = list(faq_data.keys())
-answers = list(faq_data.values())
+# Extract questions and answers from the list of dicts
+questions = [item["question"] for item in faq_list]
+answers = [item["answer"] for item in faq_list]
 
 # TF-IDF setup
 vectorizer = TfidfVectorizer()
@@ -19,7 +20,7 @@ def get_bot_response(user_input):
     best_match_idx = similarity.argmax()
     confidence = similarity[0][best_match_idx]
 
-    if confidence > 0.3:  # you can tune this threshold
+    if confidence > 0.3:
         return answers[best_match_idx]
     else:
-        return "Sorry, I didn't understand that. Please try rephrasing your question."
+        return "Sorry, I didn't understand that. Please try asking differently."
