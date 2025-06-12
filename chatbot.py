@@ -1,30 +1,25 @@
-from transformers import AutoTokenizer, AutoModel
-from sklearn.metrics.pairwise import cosine_similarity
-import torch
 import json
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
-# Load the dataset
-with open("dlc_faq_dataset.json", "r") as f:
-    faq_data = json.load(f)
+# Load FAQ data from JSON
+with open("faq.json", "r") as file:
+    faq_data = json.load(file)
 
-# Load the tokenizer and model
-tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
-model = AutoModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
+questions = list(faq_data.keys())
+answers = list(faq_data.values())
 
-# Function to compute sentence embeddings
-def get_embedding(text):
-    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True)
-    with torch.no_grad():
-        outputs = model(**inputs)
-    return outputs.last_hidden_state.mean(dim=1)
+# TF-IDF setup
+vectorizer = TfidfVectorizer()
+tfidf_matrix = vectorizer.fit_transform(questions)
 
-# Precompute embeddings for all FAQ questions
-faq_embeddings = [get_embedding(item["question"]) for item in faq_data]
+def get_bot_response(user_input):
+    user_vec = vectorizer.transform([user_input])
+    similarity = cosine_similarity(user_vec, tfidf_matrix)
+    best_match_idx = similarity.argmax()
+    confidence = similarity[0][best_match_idx]
 
-# Function to get chatbot response
-def get_bot_response(query):
-    query_emb = get_embedding(query)
-    scores = [cosine_similarity(query_emb, emb)[0][0] for emb in faq_embeddings]
-    best_match = faq_data[scores.index(max(scores))]
-    return best_match["answer"]
-
+    if confidence > 0.3:  # you can tune this threshold
+        return answers[best_match_idx]
+    else:
+        return "Sorry, I didn't understand that. Please try rephrasing your question."
